@@ -1,5 +1,0 @@
-arity = number of arguments expected by a function
-
-Mix commands
-https://elixir-examples.github.io/examples/mix-list-all-tasks
-mix docs
