@@ -76,6 +76,6 @@ defmodule Identicon do
   end
 
   def save_image(image, file_name) do
-    File.write("#{file_name}.png", image)
+    File.write("./_generated_identicons/#{file_name}.png", image)
   end
 end
