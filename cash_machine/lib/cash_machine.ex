@@ -1,40 +1,52 @@
 defmodule CashMachine do
-  def withdraw(value) do
-    bills = cond do
-      rem(value, 3) == 0 || rem(value, 5) != 0 ->
-        %CashMachine.BillValues{two: get_two_bills_needed(value)}
-      true ->
-        %CashMachine.BillValues{}
-    end
+  import Integer
+  @bills [5, 100, 50, 20, 10, 2]
 
-    bills = %CashMachine.BillValues{bills | hundred: get_current_value(value, bills) |> get_bills_needed(100)}
-    bills = %CashMachine.BillValues{bills | fifty: get_current_value(value, bills) |> get_bills_needed(50)}
-    bills = %CashMachine.BillValues{bills | twelve: get_current_value(value, bills) |> get_bills_needed(20)}
-    bills = %CashMachine.BillValues{bills | ten: get_current_value(value, bills) |> get_bills_needed(10)}
-    bills = %CashMachine.BillValues{bills | five: get_current_value(value, bills) |> get_bills_needed(5)}
-    bills = %CashMachine.BillValues{bills | two: bills.two + (get_current_value(value, bills) |> get_bills_needed(2))}
+  def withdraw(total_value) do
+    get_bills(total_value)
+    |> arrange
   end
 
-  def get_current_value(value, bills) do
-    value - ((bills.two * 2) + (bills.five * 5) + (bills.ten * 10) + (bills.twelve * 20) + (bills.fifty * 50) + (bills.hundred * 100))
+  def arrange(bills) do
+    Enum.filter(bills, fn(bill) -> !is_nil(bill) end)
   end
 
-  def get_bills_needed(value, bill_value, count \\ 0) do
-    case value >= bill_value do
-      true  -> get_bills_needed(value - bill_value, bill_value, count + 1)
-      false -> count
-    end
-
+  def get_bills(total_value) do
+    Enum.map(@bills, fn(bill) ->
+      bill_sum = get_bill_sum bill, total_value
+      cond do
+        bill_sum > 0 -> {bill, div(bill_sum, bill)}
+        true -> nil
+      end
+    end)
   end
 
-  def get_two_bills_needed(value, count \\ 0) do
-    add_more = Enum.all?([5, 10, 20, 50], fn(bill_value) ->
-      rem(value, bill_value) != 0
+  def get_bill_sum(5, total_value) do
+    if Integer.is_odd(total_value), do: 5, else: 0
+  end
+
+  def get_bill_sum(bill_value, total_value) do
+    map = Enum.map(get_previous_bills(bill_value), fn(previous_bill) ->
+      get_bill_sum(previous_bill, total_value)
     end)
 
-    case add_more do
-      true  -> get_two_bills_needed(value - 2, count + 1)
-      false -> count
+    old_sum = Enum.reduce(map, 0, fn(x, acc) -> x + acc end)
+    remain = total_value - old_sum
+    sum_bill bill_value, remain
+  end
+
+  def sum_bill(bill_value, remain, acc \\ 0) do
+    cond do
+       remain >= bill_value ->
+         new_acc = acc + bill_value
+         sum_bill(bill_value, remain - bill_value, new_acc)
+       true ->
+         acc
     end
+  end
+
+  def get_previous_bills(bill_value) do
+    index = Enum.find_index(@bills, fn(bill) -> bill == bill_value end)
+    Enum.slice(@bills, 0, index)
   end
 end
