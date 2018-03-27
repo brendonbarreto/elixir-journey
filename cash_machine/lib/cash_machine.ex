@@ -3,12 +3,17 @@ defmodule CashMachine do
   @bills [5, 100, 50, 20, 10, 2]
 
   def withdraw(total_value) do
-    get_bills(total_value)
-    |> arrange
+    cond do
+      total_value <= 3 -> []
+      true ->
+        get_bills(total_value)
+        |> arrange
+    end
   end
 
   def arrange(bills) do
     Enum.filter(bills, fn(bill) -> !is_nil(bill) end)
+    |> List.keysort(0)
   end
 
   def get_bills(total_value) do
@@ -40,8 +45,7 @@ defmodule CashMachine do
        remain >= bill_value ->
          new_acc = acc + bill_value
          sum_bill(bill_value, remain - bill_value, new_acc)
-       true ->
-         acc
+       true -> acc
     end
   end
 
