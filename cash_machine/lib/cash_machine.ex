@@ -42,9 +42,7 @@ defmodule CashMachine do
 
   def sum_bill(bill_value, remain, acc \\ 0) do
     cond do
-       remain >= bill_value ->
-         new_acc = acc + bill_value
-         sum_bill(bill_value, remain - bill_value, new_acc)
+       remain >= bill_value -> sum_bill(bill_value, remain - bill_value, acc + bill_value)
        true -> acc
     end
   end
